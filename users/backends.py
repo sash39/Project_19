@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import get_user_model
 
 
-User = get_user_model()
+User: type[AbstractBaseUser] = get_user_model()
 
 
 class SettingsBackend(BaseBackend):
@@ -15,19 +16,12 @@ class SettingsBackend(BaseBackend):
     """
 
     def authenticate(self, request, username=None, password=None):
-        login_valid = (settings.ADMIN_LOGIN == username)
-        pwd_valid = check_password(password, settings.ADMIN_PASSWORD)
-        if login_valid and pwd_valid:
-            try:
-                user = User.objects.get(username=username)
-            except User.DoesNotExist:
-                # Create a new user. There's no need to set a password
-                # because only the password from settings.py is checked.
-                user = User(username=username)
-                user.is_staff = True
-                user.is_superuser = True
-                user.save()
-            return user
+        authenticated_user = User.objects.filter(email=username).first()
+
+        if not authenticated_user:
+            return None
+        elif authenticated_user.check_password(password):
+            return authenticated_user
         return None
 
     def get_user(self, user_id):
