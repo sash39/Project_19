@@ -21,7 +21,7 @@ class User(AbstractBaseUser):
         verbose_name='Пользователь администратор',
         default=False,
     )
-
+    
     @property
     def is_staff(self) -> bool:
         return self.is_admin
