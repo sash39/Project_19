@@ -1,7 +1,9 @@
 from collections import defaultdict
+import string
 from typing import Optional
 
 from django.contrib.auth.hashers import make_password
+from users.constants import USER_MIN_PASSWORD_LENGTH
 
 from users.models import User
 
@@ -14,8 +16,11 @@ class UserService:
 
         if password != confirm_password:
             errors.append('Пароли не совпадают')
-        if len(password) < 6: # TODO: вынести в константы минимальную длину пароля
-            errors.append('Длина пароля должна быть больше 6 символов')
+        if len(password) < USER_MIN_PASSWORD_LENGTH:
+            errors.append(f'Длина пароля должна быть больше {USER_MIN_PASSWORD_LENGTH} символов')
+        if not set(string.ascii_uppercase) & set(password):
+            errors.append('Пароль должен содержать хотя бы одну заглавную букву.')
+        # TODO: по аналогии выше добавить проверку хотя бы один спецсимвол и хотя бы одну цифру
         return errors
 
     def _user_exists(self, **kwargs) -> bool:
