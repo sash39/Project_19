@@ -4,6 +4,7 @@ from typing import Optional
 
 from django.contrib.auth.hashers import make_password
 from users.constants import USER_MIN_PASSWORD_LENGTH
+from users.constants import USER_DIGIT_AND_SYMBOLS
 
 from users.models import User
 
@@ -20,6 +21,10 @@ class UserService:
             errors.append(f'Длина пароля должна быть больше {USER_MIN_PASSWORD_LENGTH} символов')
         if not set(string.ascii_uppercase) & set(password):
             errors.append('Пароль должен содержать хотя бы одну заглавную букву.')
+        #if not set(string.digits) or set(string.punctuation) & set(password):
+           # errors.append('Пароль должен содержать хотя бы один специальный символ и хотя бы одну цифру.')
+        if not set(password) & USER_DIGIT_AND_SYMBOLS:
+            errors.append(f'Пароль должен содержать хотя бы один из специальных {USER_MIN_PASSWORD_LENGTH} символов')
         # TODO: по аналогии выше добавить проверку хотя бы один спецсимвол и хотя бы одну цифру
         return errors
 

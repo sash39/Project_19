@@ -8,13 +8,13 @@ class UserRegistrationForm(Form):
         attrs={
             'type': "email",
             'class': "form-control",
-            'id': "exampleInputEmail1",
+            'id': "exampleInputEmail",
             'aria-describedby': "emailHelp",
             'placeholder': "Enter email"
         }
     ))
-    password = CharField(label='Введите пароль', widget=PasswordInput())
-    confirm_password = CharField(label='Введите пароль', widget=PasswordInput())
+    password = CharField(label='Введите пароль', widget=PasswordInput(attrs={'placeholder': "Введите пароль тут"}))
+    confirm_password = CharField(label='Введите пароль', widget=PasswordInput(attrs={'placeholder': "Повторите пароль тут"}))
 
     def is_valid(self) -> bool:
         is_valid = super().is_valid()
