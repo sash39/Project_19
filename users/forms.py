@@ -31,3 +31,41 @@ class UserRegistrationForm(Form):
                     self.add_error(field, error)
             return False
         return True
+
+
+class UserLoginForm(Form):
+    email = EmailField(label='Введите email', widget=EmailInput(
+        attrs={
+            'type': "email",
+            'class': "form-control",
+            'id': "exampleInputEmail",
+            'aria-describedby': "emailHelp",
+            'placeholder': "Enter email"
+        }
+    ))
+    password = CharField(
+        label='Введите пароль',
+        widget=PasswordInput(
+            attrs={
+                'placeholder': "Введите пароль тут",
+                'class': "form-control",
+                'id': "exampleInputEmail",
+                'aria-describedby': "emailHelp",
+            }
+        ))
+    
+    def is_valid(self) -> bool:
+        is_valid = super().is_valid()
+        
+        if not is_valid:
+            return False
+        
+        user_service = UserService()
+        errors = user_service.validate_login(**self.cleaned_data)
+
+        if len(list(errors.keys())) > 0:
+            for field, field_errors in errors.items():
+                for error in field_errors:
+                    self.add_error(field, error)
+            return False
+        return True

@@ -21,17 +21,14 @@ class UserService:
             errors.append(f'Длина пароля должна быть больше {USER_MIN_PASSWORD_LENGTH} символов')
         if not set(string.ascii_uppercase) & set(password):
             errors.append('Пароль должен содержать хотя бы одну заглавную букву.')
-        #if not set(string.digits) or set(string.punctuation) & set(password):
-           # errors.append('Пароль должен содержать хотя бы один специальный символ и хотя бы одну цифру.')
         if not set(password) & USER_DIGIT_AND_SYMBOLS:
             errors.append(f'Пароль должен содержать хотя бы один из специальных {USER_MIN_PASSWORD_LENGTH} символов')
-        # TODO: по аналогии выше добавить проверку хотя бы один спецсимвол и хотя бы одну цифру
         return errors
 
     def _user_exists(self, **kwargs) -> bool:
         return self.model.objects.filter(**kwargs).exists()
 
-    def check_email(self, email: str) -> Optional[list[str]]:
+    def check_registration_email(self, email: str) -> Optional[list[str]]:
         errors = []
 
         if self._user_exists(email=email):
@@ -46,7 +43,7 @@ class UserService:
     ) -> dict[str, list[str]]:
         errors = defaultdict(list)
 
-        email_errors = self.check_email(email)
+        email_errors = self.check_registration_email(email)
         password_errors = self.check_passwords(password, confirm_password)
 
         if len(email_errors):
@@ -68,3 +65,37 @@ class UserService:
         user = self.model(email=email)
         user.password = self._get_hashed_password(password)
         self._save_user_to_db(user)
+
+    def get_user(self, **filters) -> Optional[User]:
+        return self.model.objects.filter(**filters).first()
+
+    def check_login_email(self, email: str) -> list[str]:
+        user = self.get_user(email=email)
+
+        if not user:
+            return ['Данного пользователя не существует.']
+        elif not user.is_active:
+            return ['Данный пользователь не активен.']
+        return []
+    
+    def check_password_correct(self, password: str, **filters) -> list[str]:
+        user = self.get_user(**filters)
+        
+        if not user.check_password(password):
+            return ['Неверный пароль.']
+        return []
+
+    def validate_login(self, email: str, password: str) -> dict[str, list]:
+        errors = defaultdict(list)
+        
+        email_errors = self.check_login_email(email)
+
+        if len(email_errors):
+            errors['email'].extend(email_errors)
+            return errors
+
+        password_errors = self.check_password_correct(password, email=email)
+
+        if len(password_errors):
+            errors['password'].extend(password_errors)
+        return errors
