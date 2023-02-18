@@ -22,7 +22,7 @@ class UserService:
         if not set(string.ascii_uppercase) & set(password):
             errors.append('Пароль должен содержать хотя бы одну заглавную букву.')
         if not set(password) & USER_DIGIT_AND_SYMBOLS:
-            errors.append(f'Пароль должен содержать хотя бы один из специальных {USER_MIN_PASSWORD_LENGTH} символов')
+            errors.append(f'Пароль должен содержать хотя бы один из специальных {USER_DIGIT_AND_SYMBOLS} символов')
         return errors
 
     def _user_exists(self, **kwargs) -> bool:
