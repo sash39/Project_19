@@ -8,13 +8,13 @@ class UserRegistrationForm(Form):
         attrs={
             'type': "email",
             'class': "form-control",
-            'id': "exampleInputEmail1",
+            'id': "exampleInputEmail",
             'aria-describedby': "emailHelp",
             'placeholder': "Enter email"
         }
     ))
-    password = CharField(label='Введите пароль', widget=PasswordInput())
-    confirm_password = CharField(label='Введите пароль', widget=PasswordInput())
+    password = CharField(label='Введите пароль', widget=PasswordInput(attrs={'placeholder': "Введите пароль тут"}))
+    confirm_password = CharField(label='Введите пароль', widget=PasswordInput(attrs={'placeholder': "Повторите пароль тут"}))
 
     def is_valid(self) -> bool:
         is_valid = super().is_valid()
@@ -32,8 +32,36 @@ class UserRegistrationForm(Form):
             return False
         return True
 
+
+class UserLoginForm(Form):
+    email = EmailField(label='Введите email', widget=EmailInput(
+        attrs={
+            'type': "email",
+            'class': "form-control",
+            'id': "exampleInputEmail",
+            'aria-describedby': "emailHelp",
+            'placeholder': "Enter email"
+        }
+    ))
+    password = CharField(
+        label='Введите пароль',
+        widget=PasswordInput(
+            attrs={
+                'placeholder': "Введите пароль тут",
+                'class': "form-control",
+                'id': "exampleInputEmail",
+                'aria-describedby': "emailHelp",
+            }
+        ))
+    
+    def is_valid(self) -> bool:
+        is_valid = super().is_valid()
+        
+        if not is_valid:
+            return False
+        
         user_service = UserService()
-        errors = user_service.validate_registration(**self.cleaned_data)
+        errors = user_service.validate_login(**self.cleaned_data)
 
         if len(list(errors.keys())) > 0:
             for field, field_errors in errors.items():

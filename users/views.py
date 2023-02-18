@@ -1,15 +1,17 @@
-from django.views.generic import FormView
+from django.views.generic import FormView, RedirectView
+from django.contrib.auth import login, logout
 from django.http.response import HttpResponse
+from django.urls import reverse_lazy
 
-from users.forms import UserRegistrationForm
+from users.forms import UserRegistrationForm, UserLoginForm
 from users.services import UserService
 
 
 class UserRegistrationView(FormView):
     template_name = 'registration.html'
     form_class = UserRegistrationForm
-    success_url = '/login'
-    # success_url = reverse('users:login') TODO: сделать страницу регистрации
+    success_url = reverse_lazy('users:login')
+    # success_url = reverse('users:login') TODO: сделать страницу авторизации
 
     def form_valid(self, form: UserRegistrationForm) -> HttpResponse:
         user_service = UserService()
@@ -20,32 +22,25 @@ class UserRegistrationView(FormView):
         return super().form_valid(form)
 
 
+class UserLoginView(FormView):
+    template_name = 'sign/login.html'
+    form_class = UserLoginForm
+    success_url = reverse_lazy('index')
+    
+    def get(self, request, *args: str, **kwargs) -> HttpResponse:
+        print(request.user)
+        return super().get(request, *args, **kwargs)
 
-# from django.shortcuts import  render, redirect
-# from .forms import UserRegistrationView
-# from django.contrib.auth import login
-# from django.contrib import messages
-#
-# def register_request(request):
-# 	if request.method == "POST":
-# 		form = UserRegistrationView(request.POST)
-# 		if form.is_valid():
-# 			user = form.save()
-# 			login(request, user)
-# 			messages.success(request, "Registration successful." )
-# 			return redirect("main:homepage")
-# 		messages.error(request, "Unsuccessful registration. Invalid information.")
-# 	form = UserRegistrationForm()
-# 	return render (request=request, template_name='registration.html', context={"register_form":form})
+    def form_valid(self, form: UserLoginForm) -> HttpResponse:
+        user_service = UserService()
+        user = user_service.get_user(email=form.cleaned_data['email'])
+        login(self.request, user)
+        return super().form_valid(form)
 
-    # def register(self, request):
-    #     if request.method == 'POST':
-    #         form = UserRegistrationForm(request.POST)
-    #         if form.is_valid():
-    #             new_user = form.save(commit=False)
-    #             new_user.set_password(form.cleaned_data['password1'])
-    #             new_user.save()
-    #
-    #             return render(request, 'blog/post/list.html', {'new_user': new_user})
-    #     else:
-    #         return render(request, 'oauth/user/registration_form.html', {'form': form})
+
+class UserLogoutView(RedirectView):
+    url = reverse_lazy('index')
+    
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return super().get(request, *args, **kwargs)
