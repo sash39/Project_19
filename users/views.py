@@ -11,7 +11,6 @@ class UserRegistrationView(FormView):
     template_name = 'registration.html'
     form_class = UserRegistrationForm
     success_url = reverse_lazy('users:login')
-    # success_url = reverse('users:login') TODO: сделать страницу авторизации
 
     def form_valid(self, form: UserRegistrationForm) -> HttpResponse:
         user_service = UserService()
